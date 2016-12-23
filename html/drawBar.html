@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>台北市行業發票分析</title>
+    <script src="https://d3js.org/d3.v3.js"></script>
+</head>
+<body>
+    <svg width="900" height="300" id="svg2">
+        
+    </svg>
+
+</body>
+<script>
+//    d3.csv("invoice-taipei.csv", function(dataSet){
+//        var body = d3.select("body");
+//        for(var i = 0 ; i < dataSet.length ; i++){
+//            if(dataSet[i].number > 10000000){
+//                body.append("div").text(dataSet[i].industry + "," + dataSet[i].number);               
+//            }
+//        }
+//    });
+    d3.json("invoice-taipei.json", function(dataSet){
+        var body = d3.select("body");
+        var limits = new Array();
+        for(var i = 0 ; i < dataSet.length ; i++){
+            if(dataSet[i].amount > 1000000000 && dataSet[i].date === '2016/8/1' && dataSet[i].cid === 'A'){
+//                body.append("div").text(dataSet[i].industry + "," + dataSet[i].amount);
+                limits.push(dataSet[i]);
+            }
+        }
+        drawBars(limits);
+    });
+    function drawBars(limits){
+     var repeat = limits.length;
+     var gap = 3;
+     var height = 300 - gap * 2;
+     var barHeight = 297 / repeat - gap;//計算bar的寬度
+     
+     for(var i = 0 ; i < repeat ; i++){
+        var startY = (barHeight + gap) * i + gap;
+        d3.select("#svg2").append("line").attr({
+          x1: 200,
+          y1: startY + barHeight / 2 ,
+          x2: 200 + limits[i].amount / 50000000,
+          y2: startY + barHeight / 2,
+          stroke: "red",
+          "stroke-width": barHeight
+        });
+        d3.select("#svg2").append("text").attr({
+          x: 200 + limits[i].amount / 50000000 + gap,
+          y: startY + gap + barHeight / 2,
+          "font-size": 12
+          }).text("" + limits[i].amount);
+        d3.select("#svg2").append("text").attr({
+          x: 0,
+          y: startY + gap + barHeight / 2,
+          "font-size": 12
+          }).text("" + limits[i].industry);
+     }
+  }
+</script>
+</html>

@@ -1,0 +1,292 @@
+<div class="jumbotron content">
+    <svg width="900" height="600" id="svg1"></svg>
+    <svg width="1280" height="600" id="svg2" style="display:none"></svg>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="./js/d3.v3.js"></script>
+<script src="./html/topojson.min.js"></script>
+<style>
+    .map-boundary {
+        stroke: #eee;
+    }
+    
+    #tooltip {
+        position: absolute;
+        left: 20px;
+        color: antiquewhite
+        top: 100px;
+        width: 150px;
+        height: auto;
+        padding: 0px 10px;
+        border-radius: 10px;
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
+    }
+    
+    #tooltip.hidden {
+        display: none;
+    }
+</style>
+<div id="tooltip" class="hidden">
+    <p><strong id="city">Hello</strong></p>
+    <p id="population"></p>
+</div>
+
+<script>
+    //1.地理資料檔: topoTaiwan.json
+
+    d3.json("./html/data/population.json", function (populationData) {
+        d3.json("./html/topoTaiwan.json", function (topoData) {
+            bind(topoData, populationData);
+            render();
+        });
+    });
+
+    function render() {
+        //從這裡開始修改
+        var fScale = d3.scale.category20();
+        var tmpColor;
+        d3.selectAll("path")
+            .attr({
+                fill: function (d, i) {
+                    return fScale(i);
+                }
+            }).on("mouseover", function (d) {
+                
+                tmpColor = d3.select(this).attr("fill");
+                d3.select(this).attr({
+                    fill: "lightgreen"
+                });
+                var coordinates = d3.mouse(this);//取得滑鼠游標內容
+                var xMouse = coordinates[0];
+                var yMouse = coordinates[1];
+                var tooltip = d3.select("#tooltip")
+                   .style({
+                      left: +xMouse + 50 +"px",
+                      top: +yMouse + 50 +"px"
+                    });
+                //替換tooltip內容(選擇其id後,修改內容)
+                d3.select("#tooltip").classed("hidden",false);
+                d3.select("#tooltip #city").text(d.properties.C_Name);
+            }).on("mouseout", function (d1, i1) {
+                d3.select("#tooltip").classed("hidden",true);
+                d3.select(this).attr({
+                    //                   fill: function(d2, i2){
+                    //                      return fScale(i1);
+                    //                   }
+                    fill: tmpColor
+                });
+            }).on("click", function (d, i) {
+                d3.select("#tooltip").classed("hidden",true);
+                var maxYear = Math.max.apply(Math, d.properties.detailValue.map(function (data) {
+                    return data.year;
+                }));
+                var minYear = Math.min.apply(Math, d.properties.detailValue.map(function (data) {
+                    return data.year;
+                }));
+
+                var startyears = "<select id='startYear' class='form-control'>";
+                for (var i = minYear; i <= maxYear; i++) {
+                    startyears += "<option value='" + i + "'>" + i + "</option>"
+                }
+                startyears += "</select>"
+
+                var endyears = "<select id='endYear' class='form-control'>";
+                for (var i = minYear; i <= maxYear; i++) {
+                    var selected = "";
+                    if (i === maxYear)
+                        selected = "selected";
+                    endyears += "<option value='" + i + "' " + selected + ">" + i + "</option>"
+                }
+                endyears += "</select>"
+
+                var startages = "<select id='startAge' class='form-control'>";
+                for (var i = 0; i <= 100; i++) {
+                    var upper = "";
+                    if (i === 100)
+                        upper = "以上";
+                    startages += "<option value='" + i + "'>" + i + "歲" + upper + "</option>"
+                }
+                startages += "</select>"
+
+                var endages = "<select id='endAge' class='form-control'>";
+                for (var i = 0; i <= 100; i++) {
+                    var selected = "";
+                    var upper = "";
+                    if (i === 100) {
+                        upper = "以上"
+                        selected = "selected";
+                    }
+                    endages += "<option value='" + i + "' " + selected + ">" + i + "歲" + upper + "</option>"
+                }
+                endages += "</select>"
+
+
+                var population = 0;
+                d.properties.detailValue.forEach(function (data) {
+                    if (data.year === maxYear) {
+                        population += data.population;
+                    }
+                });
+//                d3.select("#tooltip #population").text(maxYear + "年人口數：" + population);
+
+
+                BootstrapDialog.show({
+                    size: BootstrapDialog.SIZE_SMALL,
+                    title: d.properties.C_Name,
+                    message: "<p><h4><strong>" + maxYear + "年人口數：" + population + "</strong></h4><p/>" + "<hr/><p>性別：<br/><select id='sex' class='form-control'><option value='all'>全部<option><option value='男'>男<option><option value='女'>女<option></select><br/>起始年：<br/>" + startyears + "<br/>結束年：<br/>" + endyears + "<br/>起迄歲：<br/>" + startages + "<br/>" + endages + "</p>",
+                    draggable: true,
+                    buttons: [{
+                        label: '開啟長條圖',
+                        // no title as it is optional
+                        cssClass: 'btn-info',
+                        action: function () {
+                            var subDiaglog = BootstrapDialog.show({
+                                size: BootstrapDialog.SIZE_LARGE,
+                                title: d.properties.C_Name + '人口統計圖',
+                                draggable: true
+                            });
+                            //                            subDiaglog.getModalBody().html('Dialog closes in 5 seconds.');
+                            var startYear = +$("#startYear").val();
+                            var endYear = +$("#endYear").val();
+                            var selSex = $("#sex").val();
+                            var startAge = +$("#startAge").val();
+                            var endAge = +$("#endAge").val();
+                            var yearsPopulation = [];
+                            d.properties.detailValue.forEach(function (data) {
+                                //判斷要不要取此筆資料進入統計
+                                var age = -1;
+                                if (data.age.indexOf("100歲以上") >= 0)
+                                    age = 100
+                                else
+                                    age = +data.age.replace("歲", "");
+
+                                var ageRange = false;
+                                if (age >= startAge && age <= endAge)
+                                    ageRange = true;
+
+                                var sex = true;
+                                if (selSex !== "all")
+                                    sex = (data.sex === selSex);
+
+                                var year = data.year;
+                                var yearRange = false;
+                                if (year >= startYear && year <= endYear)
+                                    yearRange = true;
+
+                                if (sex && yearRange && ageRange) {
+                                    var staticstic = yearsPopulation[year];
+                                    if (staticstic === undefined || staticstic === null) {
+                                        yearsPopulation[year] = data.population;
+                                    } else {
+                                        yearsPopulation[year] += data.population;
+                                    }
+                                }
+                            });
+                            console.log(yearsPopulation);
+                            //                            for(var strName in yearsPopulation){
+                            //                              var strValue = yearsPopulation[strName] ;
+                            //                              console.log("name : " + strName + " : value : " + strValue) ;
+                            //                            }
+
+                            drawBars(yearsPopulation, subDiaglog);
+                        }
+                    }]
+                });
+
+            });
+    }
+
+    function drawBars(inputArray, subDiaglog) {
+        $("#svg2").html("");
+        var counter = 0;
+        var width = 399;
+        var maxNum = 0;
+        for (var i in inputArray) {
+            if(maxNum < inputArray[i])
+                maxNum = inputArray[i];
+            counter++;
+        }
+        var devided = 1;
+        if(maxNum > (width - 100))
+            devided = Math.ceil(maxNum / width);
+        console.log("devided:" + devided);
+        var gap = 3;
+        var height = 450 - gap * 2;
+        var barHeight = 445 / counter - gap; //計算bar的寬度
+        console.log("barHeight:" + barHeight);
+        counter = 0;
+        var abc;
+        for (var i in inputArray) {
+            counter++;
+            var startY = (barHeight + gap) * counter + gap;
+            abc = d3.select("#svg2").append("line").attr({
+                x1: 50,
+                y1: startY + barHeight / 2,
+                x2: 50 + inputArray[i] / devided,
+                y2: startY + barHeight / 2,
+                stroke: "red",
+                "stroke-width": barHeight
+            });
+            d3.select("#svg2").append("text").attr({
+                x: 50 + inputArray[i] / devided + gap,
+                y: startY + gap + barHeight / 2,
+                "font-size": 14
+            }).text("" + inputArray[i]);
+            d3.select("#svg2").append("text").attr({
+                x: 0,
+                y: startY + gap + barHeight / 2,
+                "font-size": 14
+            }).text("" + i + "年");
+        }
+        var htmlContent = '<svg width="900" height="600" id="svg3">' + $("#svg2").html() + "</svg>";
+//                console.log(htmlContent);
+        subDiaglog.getModalBody().html(htmlContent);
+    }
+
+
+
+    function bind(topoData, populationData) {
+        // 2.地理投影器: 設定投影方式(麥卡托)、定位點([經,緯度])、縮放(scale)
+        var projection = d3.geo.mercator().center([121, 24]).scale(8000);
+
+        // 3.路徑產生器: d3.geo.path()
+        var path = d3.geo.path().projection(projection);
+
+        // 4.地理資料檔: 使用topojson.js載入地理資料
+        var topo = topojson.feature(topoData, topoData.objects["county"]);
+        //把各縣市的詳細資料結合進來
+        for (var i = 0; i < topo.features.length; i++) {
+            topo.features[i].properties.detailValue = populationData[topo.features[i].properties.C_Name];
+        }
+
+
+
+        // 綁定path與載入的地理資料(features:每一地理區劃)
+        var selection = d3.select("#svg1").selectAll("path").data(topo.features);
+
+        //            console.log(topo.features);   
+        selection.enter().append("path");
+        selection.exit().remove();
+        selection.classed("map-boundary", true).attr("d", path);
+    }
+</script>
