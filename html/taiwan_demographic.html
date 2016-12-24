@@ -128,47 +128,42 @@
                 });
             }).on("click", function (d, i) {
                 d3.select("#tooltip").classed("hidden", true);
+                //找出傳入資料的最大年及最小年
                 var maxYear = Math.max.apply(Math, d.properties.detailValue.map(function (data) {
                     return data.year;
                 }));
                 var minYear = Math.min.apply(Math, d.properties.detailValue.map(function (data) {
                     return data.year;
                 }));
-
+                
+                //做出區間內可選擇的最大年及最小年的下拉選單
                 var startyears = "<select id='startYear' class='form-control'>";
-                for (var i = minYear; i <= maxYear; i++) {
-                    startyears += "<option value='" + i + "'>" + i + "</option>"
+                var endyears = "<select id='endYear' class='form-control'>";            
+                for (var input = minYear; input <= maxYear; input++) {
+                    startyears += "<option value='" + input + "'>" + input + "</option>"
+                    var selected = "";
+                    if (input === maxYear)
+                        selected = "selected";
+                    endyears += "<option value='" + input + "' " + selected + ">" + input + "</option>"
+
                 }
                 startyears += "</select>"
-
-                var endyears = "<select id='endYear' class='form-control'>";
-                for (var i = minYear; i <= maxYear; i++) {
-                    var selected = "";
-                    if (i === maxYear)
-                        selected = "selected";
-                    endyears += "<option value='" + i + "' " + selected + ">" + i + "</option>"
-                }
                 endyears += "</select>"
-
-                var startages = "<select id='startAge' class='form-control'>";
-                for (var i = 0; i <= 100; i++) {
-                    var upper = "";
-                    if (i === 100)
-                        upper = "以上";
-                    startages += "<option value='" + i + "'>" + i + "歲" + upper + "</option>"
-                }
-                startages += "</select>"
-
+                //做出0到100歲的下拉選單
                 var endages = "<select id='endAge' class='form-control'>";
-                for (var i = 0; i <= 100; i++) {
+                var startages = "<select id='startAge' class='form-control'>";
+                for (var input = 0; input <= 100; input++) {
+                    var upper = "";
                     var selected = "";
                     var upper = "";
-                    if (i === 100) {
+                    if (input === 100) {
                         upper = "以上"
                         selected = "selected";
                     }
-                    endages += "<option value='" + i + "' " + selected + ">" + i + "歲" + upper + "</option>"
+                    startages += "<option value='" + input + "'>" + input + "歲" + upper + "</option>"
+                    endages += "<option value='" + input + "' " + selected + ">" + input + "歲" + upper + "</option>"
                 }
+                startages += "</select>"
                 endages += "</select>"
 
 
@@ -193,7 +188,7 @@
                         action: function () {
                             var subDiaglog = BootstrapDialog.show({
                                 size: BootstrapDialog.SIZE_LARGE,
-                                title: d.properties.C_Name + '人口統計圖',
+                                title: d.properties.C_Name + '人口折線圖',
                                 draggable: true
                             });
                             //                            subDiaglog.getModalBody().html('Dialog closes in 5 seconds.');
@@ -243,7 +238,7 @@
                         action: function () {
                             var subDiaglog = BootstrapDialog.show({
                                 size: BootstrapDialog.SIZE_LARGE,
-                                title: d.properties.C_Name + '人口統計圖',
+                                title: d.properties.C_Name + '人口長條圖',
                                 draggable: true
                             });
                             //                            subDiaglog.getModalBody().html('Dialog closes in 5 seconds.');
@@ -326,6 +321,7 @@
         var w = 500; // 寬
         var h = 300; // 高
         var dataset = []; //建立空的資料陣列
+        //因為我的陣列的index是從92之後開始的
         //先轉一次，不然svg.line().x(function (d, i) 這裡的i會錯亂
         for(var index in inputArray){
             dataset.push(inputArray[index]);
@@ -365,11 +361,11 @@
             .attr('transform', 'translate(0,0)')
             .call(yAxisLeft);
         svg.append('path').attr('d', line(dataset)); //將資料套用d3.svg.line
-        
+        //資料綁定，畫出圓形
         var selection = svg.selectAll("circle").data(dataset);        
         selection.enter().append("circle");
         selection.exit().remove();
-        
+        //畫出定點
         d3.selectAll("circle")
                 .attr({
                     cx: function (d, i) {
@@ -457,6 +453,7 @@
 //        console.log("win width:" + winWidth);
         var lan = 121;
         var adjustLan = 0;
+        //配合螢幕大小調整中心點，避免跑版
         if (950 / winWidth > 1)
             adjustLan = 950 / winWidth;
         var projection = d3.geo.mercator().center([lan + adjustLan, 24]).scale(8000);
@@ -474,7 +471,7 @@
 
         // 綁定path與載入的地理資料(features:每一地理區劃)
         var selection = d3.select("#svg1").attr({
-            width: winWidth - 100
+            width: winWidth - 100 //調整畫圖區的寬度
         }).selectAll("path").data(topo.features);
 
         //            console.log(topo.features);   
