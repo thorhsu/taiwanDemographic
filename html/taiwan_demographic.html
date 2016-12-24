@@ -319,7 +319,8 @@
                 startYear = i;
             counter++;
         }
-        var endYear = 92 + counter;
+        var endYear = parseInt(startYear) + parseInt(counter);
+        
 
 
         var margin = {
@@ -336,7 +337,6 @@
             dataset.push(inputArray[index]);
         }
         //X是資料的數量，Y則是資料的值
-        console.log(dataset)
         var xScale = d3.scale.linear().domain([startYear, endYear]).range([0, w]);
         var yScale = d3.scale.linear().domain([minNum, maxNum]).range([h, 0]);
         // 增加一個line function，用來把資料轉為x, y
@@ -422,11 +422,9 @@
         var slopeAdjust = 1.1;
         if (maxNum > (width - 100))
             devided = Math.ceil((maxNum - minNum / slopeAdjust) / width);
-        console.log("devided:" + devided);
-        var gap = 3;
+        var gap = 5;
         var height = 450 - gap * 2;
         var barHeight = 445 / counter - gap; //計算bar的寬度
-        console.log("barHeight:" + barHeight);
         counter = 0;
         var abc;
         for (var i in inputArray) {
@@ -462,7 +460,7 @@
         // 2.地理投影器: 設定投影方式(麥卡托)、定位點([經,緯度])、縮放(scale)
 
         var winWidth = (window.innerWidth > 0) ? window.innerWidth : screen.width;
-        console.log("win width:" + winWidth);
+//        console.log("win width:" + winWidth);
         var lan = 121;
         var adjustLan = 0;
         if (950 / winWidth > 1)
