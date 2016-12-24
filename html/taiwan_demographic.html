@@ -79,7 +79,6 @@
 </style>
 <div id="tooltip" class="hidden">
     <p><strong id="city">Hello</strong></p>
-    <p id="population"></p>
 </div>
 
 <script>
@@ -102,7 +101,7 @@
                     return fScale(i);
                 }
             }).on("mouseover", function (d) {
-
+                //提示框內容
                 tmpColor = d3.select(this).attr("fill");
                 d3.select(this).attr({
                     fill: "lightgreen"
@@ -385,7 +384,7 @@
 
         
         var htmlContent = '<svg width="900" height="600" id="svg3">' + $("#svg2").html() + "</svg>";
-        //                console.log(htmlContent);
+        //將繪製在svg2的html複製到對話窗中
         subDiaglog.getModalBody().html(htmlContent);
 
 
