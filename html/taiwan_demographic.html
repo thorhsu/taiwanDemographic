@@ -1,6 +1,10 @@
 <div class="jumbotron content">
-    <svg width="900" height="600" id="svg1"></svg>
-    <svg width="1280" height="600" id="svg2" style="display:none"></svg>
+    <div class="row">
+        <div class="col-md-12">
+            <svg width="900" height="600" id="svg1"></svg>
+            <svg width="1280" height="600" id="svg2" style="display:none"></svg>
+        </div>
+    </div>
 
     <!-- Modal -->
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -33,8 +37,7 @@
     #tooltip {
         position: absolute;
         left: 20px;
-        color: antiquewhite
-        top: 100px;
+        color: antiquewhite top: 100px;
         width: 150px;
         height: auto;
         padding: 0px 10px;
@@ -44,6 +47,41 @@
     
     #tooltip.hidden {
         display: none;
+    }
+    
+    #svg2 path {
+        stroke: DodgerBlue;
+        stroke-width: 1;
+        fill: none;
+    }
+
+    #svg3 path {
+        stroke: DodgerBlue;
+        stroke-width: 1;
+        fill: none;
+    }
+
+    .axis {
+        font-size: 11px;
+        fill: gray;
+    }
+    
+    .x.axis line {
+        stroke: lightgrey;
+    }
+    
+    .x.axis .minor {
+        stroke-opacity: .5;
+    }
+    
+    .x.axis path {
+        stroke: #fafafa;
+    }
+    
+    .y.axis line,
+    .y.axis path {
+        fill: none;
+        stroke: lightgrey;
     }
 </style>
 <div id="tooltip" class="hidden">
@@ -71,24 +109,24 @@
                     return fScale(i);
                 }
             }).on("mouseover", function (d) {
-                
+
                 tmpColor = d3.select(this).attr("fill");
                 d3.select(this).attr({
                     fill: "lightgreen"
                 });
-                var coordinates = d3.mouse(this);//取得滑鼠游標內容
+                var coordinates = d3.mouse(this); //取得滑鼠游標內容
                 var xMouse = coordinates[0];
                 var yMouse = coordinates[1];
                 var tooltip = d3.select("#tooltip")
-                   .style({
-                      left: +xMouse + 50 +"px",
-                      top: +yMouse + 50 +"px"
+                    .style({
+                        left: +xMouse + 50 + "px",
+                        top: +yMouse + 50 + "px"
                     });
                 //替換tooltip內容(選擇其id後,修改內容)
-                d3.select("#tooltip").classed("hidden",false);
+                d3.select("#tooltip").classed("hidden", false);
                 d3.select("#tooltip #city").text(d.properties.C_Name);
             }).on("mouseout", function (d1, i1) {
-                d3.select("#tooltip").classed("hidden",true);
+                d3.select("#tooltip").classed("hidden", true);
                 d3.select(this).attr({
                     //                   fill: function(d2, i2){
                     //                      return fScale(i1);
@@ -96,7 +134,7 @@
                     fill: tmpColor
                 });
             }).on("click", function (d, i) {
-                d3.select("#tooltip").classed("hidden",true);
+                d3.select("#tooltip").classed("hidden", true);
                 var maxYear = Math.max.apply(Math, d.properties.detailValue.map(function (data) {
                     return data.year;
                 }));
@@ -147,15 +185,65 @@
                         population += data.population;
                     }
                 });
-//                d3.select("#tooltip #population").text(maxYear + "年人口數：" + population);
+                //                d3.select("#tooltip #population").text(maxYear + "年人口數：" + population);
 
 
                 BootstrapDialog.show({
                     size: BootstrapDialog.SIZE_SMALL,
                     title: d.properties.C_Name,
-                    message: "<p><h4><strong>" + maxYear + "年人口數：" + population + "</strong></h4><p/>" + "<hr/><p>性別：<br/><select id='sex' class='form-control'><option value='all'>全部<option><option value='男'>男<option><option value='女'>女<option></select><br/>起始年：<br/>" + startyears + "<br/>結束年：<br/>" + endyears + "<br/>起迄歲：<br/>" + startages + "<br/>" + endages + "</p>",
+                    message: "<p><h4><strong>" + maxYear + "年人口數：" + population.toLocaleString() + "</strong></h4><p/>" + "<hr/><p>性別：<br/><select id='sex' class='form-control'><option value='all'>全部<option><option value='男'>男<option><option value='女'>女<option></select><br/>起始年：<br/>" + startyears + "<br/>結束年：<br/>" + endyears + "<br/>起迄歲：<br/>" + startages + "<br/>" + endages + "</p>",
                     draggable: true,
                     buttons: [{
+                        label: '開啟折線圖',
+                        // no title as it is optional
+                        cssClass: 'btn-info',
+                        action: function () {
+                            var subDiaglog = BootstrapDialog.show({
+                                size: BootstrapDialog.SIZE_LARGE,
+                                title: d.properties.C_Name + '人口統計圖',
+                                draggable: true
+                            });
+                            //                            subDiaglog.getModalBody().html('Dialog closes in 5 seconds.');
+                            var startYear = +$("#startYear").val();
+                            var endYear = +$("#endYear").val();
+                            var selSex = $("#sex").val();
+                            var startAge = +$("#startAge").val();
+                            var endAge = +$("#endAge").val();
+                            var yearsPopulation = [];
+                            d.properties.detailValue.forEach(function (data) {
+                                //判斷要不要取此筆資料進入統計
+                                var age = -1;
+                                if (data.age.indexOf("100歲以上") >= 0)
+                                    age = 100
+                                else
+                                    age = +data.age.replace("歲", "");
+
+                                var ageRange = false;
+                                if (age >= startAge && age <= endAge)
+                                    ageRange = true;
+
+                                var sex = true;
+                                if (selSex !== "all")
+                                    sex = (data.sex === selSex);
+
+                                var year = data.year;
+                                var yearRange = false;
+                                if (year >= startYear && year <= endYear)
+                                    yearRange = true;
+
+                                if (sex && yearRange && ageRange) {
+                                    var staticstic = yearsPopulation[year];
+                                    if (staticstic === undefined || staticstic === null) {
+                                        yearsPopulation[year] = data.population;
+                                    } else {
+                                        yearsPopulation[year] += data.population;
+                                    }
+                                }
+                            });
+
+                            drawLine(yearsPopulation, subDiaglog);
+                        }
+                    },{
                         label: '開啟長條圖',
                         // no title as it is optional
                         cssClass: 'btn-info',
@@ -202,13 +290,9 @@
                                     }
                                 }
                             });
-                            console.log(yearsPopulation);
-                            //                            for(var strName in yearsPopulation){
-                            //                              var strValue = yearsPopulation[strName] ;
-                            //                              console.log("name : " + strName + " : value : " + strValue) ;
-                            //                            }
 
                             drawBars(yearsPopulation, subDiaglog);
+//                            drawLine(yearsPopulation, subDiaglog);
                         }
                     }]
                 });
@@ -216,19 +300,128 @@
             });
     }
 
+    function drawLine(inputArray, subDiaglog) {
+        $("#svg2").html("");
+        var counter = 0;
+        var width = 399;
+        var maxNum = 0;
+        var minNum = 0;
+        var startYear = 92;
+        //array.length會取最後一個最大的數字，此例中為104，所以以length取出會是105
+        for (var i in inputArray) {
+            if (maxNum < inputArray[i])
+                maxNum = inputArray[i];
+            if (counter === 0)
+                minNum = inputArray[i];
+            if (minNum > inputArray[i])
+                minNum = inputArray[i];
+            if(counter === 0)
+                startYear = i;
+            counter++;
+        }
+        var endYear = 92 + counter;
+
+
+        var margin = {
+            top: 60,
+            right: 30,
+            bottom: 50,
+            left: 55
+        };
+        var w = 500; // 寬
+        var h = 300; // 高
+        var dataset = []; //建立空的資料陣列
+        //先轉一次，不然svg.line().x(function (d, i) 這裡的i會錯亂
+        for(var index in inputArray){
+            dataset.push(inputArray[index]);
+        }
+        //X是資料的數量，Y則是資料的值
+        console.log(dataset)
+        var xScale = d3.scale.linear().domain([startYear, endYear]).range([0, w]);
+        var yScale = d3.scale.linear().domain([minNum, maxNum]).range([h, 0]);
+        // 增加一個line function，用來把資料轉為x, y
+        var line = d3.svg.line()
+            .x(function (d, i) {
+                return xScale(i + parseInt(startYear)); //利用尺度運算資料索引，傳回x的位置
+            })
+            .y(function (d) {
+                return yScale(d); //利用尺度運算資料的值，傳回y的位置
+            });
+        
+        
+        
+        //增加一個SVG元素
+        var svg = d3.select('#svg2')
+            .attr('width', w + margin.left + margin.right) //將左右補滿
+            .attr('height', h + margin.top + margin.bottom) //上下補滿
+            .append('g') //增加一個群組g
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        // 增加x軸線，tickSize是軸線的垂直高度，-h會往上拉高
+        var xAxis = d3.svg.axis().scale(xScale).orient('bottom').tickSize(-h).ticks(counter);
+        // SVG加入x軸線
+        svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + h + ')')
+            .call(xAxis);
+        // 建立y軸線，4個刻度，數字在左
+        var yAxisLeft = d3.svg.axis().scale(yScale).ticks(4).orient('left');
+        // SVG加入y軸線
+        svg.append('g')
+            .attr('class', 'y axis')
+            .attr('transform', 'translate(0,0)')
+            .call(yAxisLeft);
+        svg.append('path').attr('d', line(dataset)); //將資料套用d3.svg.line
+        
+        var selection = svg.selectAll("circle").data(dataset);        
+        selection.enter().append("circle");
+        selection.exit().remove();
+        
+        d3.selectAll("circle")
+                .attr({
+                    cx: function (d, i) {
+                        return xScale(i + parseInt(startYear));
+                    },
+                    cy: function (d) {
+                        return yScale(d);
+                    },
+                    r: function (d) {
+                        return 5;
+                    },
+                    //填顏色
+                    fill: function (d) {
+                        return "green";
+                    }
+                })
+
+        
+        var htmlContent = '<svg width="900" height="600" id="svg3">' + $("#svg2").html() + "</svg>";
+        //                console.log(htmlContent);
+        subDiaglog.getModalBody().html(htmlContent);
+
+
+    }
+
+
     function drawBars(inputArray, subDiaglog) {
         $("#svg2").html("");
         var counter = 0;
         var width = 399;
         var maxNum = 0;
+        var minNum = 0;
+        //array.length會取最後一個最大的數字，此例中為104，所以以length取出會是105
         for (var i in inputArray) {
-            if(maxNum < inputArray[i])
+            if (maxNum < inputArray[i])
                 maxNum = inputArray[i];
+            if (counter === 0)
+                minNum = inputArray[i];
+            if (minNum > inputArray[i])
+                minNum = inputArray[i];
             counter++;
         }
         var devided = 1;
-        if(maxNum > (width - 100))
-            devided = Math.ceil(maxNum / width);
+        var slopeAdjust = 1.1;
+        if (maxNum > (width - 100))
+            devided = Math.ceil((maxNum - minNum / slopeAdjust) / width);
         console.log("devided:" + devided);
         var gap = 3;
         var height = 450 - gap * 2;
@@ -242,16 +435,16 @@
             abc = d3.select("#svg2").append("line").attr({
                 x1: 50,
                 y1: startY + barHeight / 2,
-                x2: 50 + inputArray[i] / devided,
+                x2: 50 + (inputArray[i] - minNum / slopeAdjust) / devided,
                 y2: startY + barHeight / 2,
                 stroke: "red",
                 "stroke-width": barHeight
             });
             d3.select("#svg2").append("text").attr({
-                x: 50 + inputArray[i] / devided + gap,
+                x: 50 + (inputArray[i] - minNum / slopeAdjust) / devided + gap,
                 y: startY + gap + barHeight / 2,
                 "font-size": 14
-            }).text("" + inputArray[i]);
+            }).text("" + inputArray[i].toLocaleString());
             d3.select("#svg2").append("text").attr({
                 x: 0,
                 y: startY + gap + barHeight / 2,
@@ -259,7 +452,7 @@
             }).text("" + i + "年");
         }
         var htmlContent = '<svg width="900" height="600" id="svg3">' + $("#svg2").html() + "</svg>";
-//                console.log(htmlContent);
+        //                console.log(htmlContent);
         subDiaglog.getModalBody().html(htmlContent);
     }
 
@@ -267,8 +460,14 @@
 
     function bind(topoData, populationData) {
         // 2.地理投影器: 設定投影方式(麥卡托)、定位點([經,緯度])、縮放(scale)
-        var projection = d3.geo.mercator().center([121, 24]).scale(8000);
 
+        var winWidth = (window.innerWidth > 0) ? window.innerWidth : screen.width;
+        console.log("win width:" + winWidth);
+        var lan = 121;
+        var adjustLan = 0;
+        if (950 / winWidth > 1)
+            adjustLan = 950 / winWidth;
+        var projection = d3.geo.mercator().center([lan + adjustLan, 24]).scale(8000);
         // 3.路徑產生器: d3.geo.path()
         var path = d3.geo.path().projection(projection);
 
@@ -282,7 +481,9 @@
 
 
         // 綁定path與載入的地理資料(features:每一地理區劃)
-        var selection = d3.select("#svg1").selectAll("path").data(topo.features);
+        var selection = d3.select("#svg1").attr({
+            width: winWidth - 100
+        }).selectAll("path").data(topo.features);
 
         //            console.log(topo.features);   
         selection.enter().append("path");
