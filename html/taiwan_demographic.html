@@ -453,9 +453,8 @@
         var lan = 121;
         var adjustLan = 0;
         //配合螢幕大小調整中心點，避免跑版
-        if (950 / winWidth > 1)
-            adjustLan = 950 / winWidth;
-        var projection = d3.geo.mercator().center([lan + adjustLan, 24]).scale(8000);
+        adjustLan = 1020 / winWidth;
+        var projection = d3.geo.mercator().center([lan + adjustLan, 24]).scale(7000);
         // 3.路徑產生器: d3.geo.path()
         var path = d3.geo.path().projection(projection);
 
