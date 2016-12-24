@@ -356,7 +356,7 @@
             .attr('height', h + margin.top + margin.bottom) //上下補滿
             .append('g') //增加一個群組g
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-        // 增加x軸線，tickSize是軸線的垂直高度，-h會往上拉高
+        // 增加x軸線，tickSize(-h)會把座標線往上面畫上去
         var xAxis = d3.svg.axis().scale(xScale).orient('bottom').tickSize(-h).ticks(counter);
         // SVG加入x軸線
         svg.append('g')
