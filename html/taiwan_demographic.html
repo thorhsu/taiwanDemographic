@@ -185,12 +185,12 @@
                         // no title as it is optional
                         cssClass: 'btn-info',
                         action: function () {
-                            var subDiaglog = BootstrapDialog.show({
+                            var subDialog = BootstrapDialog.show({
                                 size: BootstrapDialog.SIZE_LARGE,
                                 title: d.properties.C_Name + '人口折線圖',
                                 draggable: true
                             });
-                            //                            subDiaglog.getModalBody().html('Dialog closes in 5 seconds.');
+                            //                            subDialog.getModalBody().html('Dialog closes in 5 seconds.');
                             var startYear = +$("#startYear").val();
                             var endYear = +$("#endYear").val();
                             var selSex = $("#sex").val();
@@ -228,19 +228,19 @@
                                 }
                             });
 
-                            drawLine(yearsPopulation, subDiaglog);
+                            drawLine(yearsPopulation, subDialog);
                         }
                     },{
                         label: '開啟長條圖',
                         // no title as it is optional
                         cssClass: 'btn-info',
                         action: function () {
-                            var subDiaglog = BootstrapDialog.show({
+                            var subDialog = BootstrapDialog.show({
                                 size: BootstrapDialog.SIZE_LARGE,
                                 title: d.properties.C_Name + '人口長條圖',
                                 draggable: true
                             });
-                            //                            subDiaglog.getModalBody().html('Dialog closes in 5 seconds.');
+                            //                            subDialog.getModalBody().html('Dialog closes in 5 seconds.');
                             var startYear = +$("#startYear").val();
                             var endYear = +$("#endYear").val();
                             var selSex = $("#sex").val();
@@ -278,8 +278,8 @@
                                 }
                             });
 
-                            drawBars(yearsPopulation, subDiaglog);
-//                            drawLine(yearsPopulation, subDiaglog);
+                            drawBars(yearsPopulation, subDialog);
+//                            drawLine(yearsPopulation, subDialog);
                         }
                     }]
                 });
@@ -287,7 +287,7 @@
             });
     }
 
-    function drawLine(inputArray, subDiaglog) {
+    function drawLine(inputArray, subDialog) {
         $("#svg2").html("");
         var counter = 0;
         var width = 399;
@@ -385,13 +385,13 @@
         
         var htmlContent = '<svg width="900" height="600" id="svg3">' + $("#svg2").html() + "</svg>";
         //將繪製在svg2的html複製到對話窗中
-        subDiaglog.getModalBody().html(htmlContent);
+        subDialog.getModalBody().html(htmlContent);
 
 
     }
 
 
-    function drawBars(inputArray, subDiaglog) {
+    function drawBars(inputArray, subDialog) {
         $("#svg2").html("");
         var counter = 0;
         var width = 399;
@@ -440,7 +440,7 @@
         }
         var htmlContent = '<svg width="900" height="600" id="svg3">' + $("#svg2").html() + "</svg>";
         //                console.log(htmlContent);
-        subDiaglog.getModalBody().html(htmlContent);
+        subDialog.getModalBody().html(htmlContent);
     }
 
 
